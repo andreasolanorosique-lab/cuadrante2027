@@ -2,11 +2,17 @@ from datetime import date, timedelta
 
 OPERADORES = list("ABCDEFGHIJKL")
 
+VACACIONES = {
+    "J",
+    "K",
+    "L"
+}
+
 PATRON_VERANO = [
     "M", "M",
     "T", "T",
     "N", "N",
-    "4", "4", "4", "4"
+    "4", "4", "4"
 ]
 
 OFFSETS = {
@@ -30,7 +36,7 @@ FIN = date(2027, 6, 30)
 cuadrante = {}
 
 for op in OPERADORES:
-
+    
     offset = OFFSETS[op]
 
     fecha = INICIO
@@ -60,14 +66,21 @@ while fecha <= FIN:
 
     for op in OPERADORES:
 
+        if op in VACACIONES:
+            continue
+
         turno = cuadrante[(op, fecha)]
 
         if turno == "M":
             m += 1
+
         elif turno == "T":
             t += 1
+
         elif turno == "N":
             n += 1
+
+    # <- EL PRINT VA AQUÍ
 
     print(
         fecha,
@@ -76,6 +89,8 @@ while fecha <= FIN:
         "N=", n
     )
 
-    fecha += timedelta(days=1)
+    if m < 2 or t < 2 or n < 2:
 
-print("FIN")
+        print("FALLO COBERTURA")
+
+    fecha += timedelta(days=1)
