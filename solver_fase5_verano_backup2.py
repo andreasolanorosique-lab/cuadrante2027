@@ -71,19 +71,13 @@ for op in OPERADORES:
             model.Add(
                 turno[op, d]
                 ==
-                PATRON[k]
+                PATRON[(d + k) % LONGITUD_INVIERNO]
             ).OnlyEnforceIf(b)
 
             opciones.append(b)
 
         model.AddExactlyOne(opciones)
-        if d > 0:
 
-            model.Add(
-                posicion[op, d]
-                >=
-                posicion[op, d - 1]
-            )
 # ==================================================
 # COBERTURA
 # ==================================================
@@ -127,15 +121,7 @@ solver.parameters.max_time_in_seconds = 60
 status = solver.Solve(model)
 
 print("STATUS =", solver.StatusName(status))
-print()
-print("PRUEBA POSICIONES A")
 
-for d in range(10):
-
-    print(
-        d,
-        solver.Value(posicion["A", d])
-    )
 
 if status not in (
     cp_model.OPTIMAL,
