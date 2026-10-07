@@ -1,166 +1,269 @@
-from ortools.sat.python import cp_model
+from datetime import date, timedelta
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
+from calendar import monthrange
+
+# ==================================================
+# CONFIGURACION
+# ==================================================
 
 OPERADORES = list("ABCDEFGHIJKL")
 
-PATRON = [
-    1, 1,   # MM
-    2, 2,   # TT
-    3, 3,   # NN
-    0, 0, 0, 0, 0, 0  # 444444
+INICIO = date(2027, 1, 1)
+FIN = date(2027, 12, 31)
+
+COLORES = {
+    "M": "92D050",
+    "T": "FFC000",
+    "N": "7030A0",
+    "4": "D9D9D9"
+}
+
+DIAS_SEMANA = [
+    "L",
+    "M",
+    "X",
+    "J",
+    "V",
+    "S",
+    "D"
 ]
 
-DIAS = 365
-LONGITUD = len(PATRON)
+MESES = [
+    "ENERO",
+    "FEBRERO",
+    "MARZO",
+    "ABRIL",
+    "MAYO",
+    "JUNIO",
+    "JULIO",
+    "AGOSTO",
+    "SEPTIEMBRE",
+    "OCTUBRE",
+    "NOVIEMBRE",
+    "DICIEMBRE"
+]
 
-model = cp_model.CpModel()
+# ==================================================
+# FUNCIONES CICLO
+# ==================================================
 
-offset = {}
+def es_verano(fecha):
+    return fecha.month in [6, 7, 8, 9]
+
+
+def longitud_ciclo(fecha):
+    if es_verano(fecha):
+        return 9
+    return 12
+
+
+def turno_desde_posicion(pos, fecha):
+
+    if pos in [0, 1\]:
+        return "M"
+
+    if pos in [2, 3\]:
+        return "T"
+
+    if pos in [4, 5\]:
+        return "N"
+
+    return "4"
+
+
+# ==================================================
+# DESFASES INICIALES
+# (los que encontró OR-ls)
+# ==================================================
+
+OFFSETS = {
+    "A": 6,
+    "B": 5,
+    "C": 3,
+    "D": 7,
+    "E": 10,
+    "F": 9,
+    "G": 1,
+    "H": 8,
+    "I": 2,
+    "J": 0,
+    "K": 4,
+    "L": 11,
+}
+
+# ==================================================
+# GENERAR ESTADOS
+# ==================================================
+
+cuadrante = {}
 
 for op in OPERADORES:
-    offset[op] = model.NewIntVar(
-        0,
-        LONGITUD - 1,
-        f"offset_{op}"
-    )
 
-turno = {}
+    posicion = OFFSETS[op]
 
-for op in OPERADORES:
+    fecha = INICIO
 
-    for d in range(DIAS):
+    while fecha <= FIN:
 
-        turno[(op, d)] = model.NewIntVar(
-            0,
-            3,
-            f"{op}_{d}"
+        longitud = longitud_ciclo(fecha)
+
+        posicion = posicion % longitud
+
+        turno = turno_desde_posicion(
+            posicion,
+            fecha
         )
 
-        opciones = []
+        cuadrante[(op, fecha)] = turno
 
-        for k in range(LONGITUD):
+        posicion += 1
 
-            b = model.NewBoolVar(
-                f"{op}_{d}_{k}"
+        fecha += timedelta(days=1)
+
+# ==================================================
+# EXCEL
+# ==================================================
+
+wb = Workbook()
+
+ws = wb.active
+ws.title = "Cuadrante"
+
+fila = 1
+indice_fecha = INICIO
+
+for mes in range(1, 13):
+
+    dias_mes = monthrange(2027, mes)[1]
+
+    ws.cell(
+        fila,
+        1,
+        f"{MESES[mes-1]} 2027"
+    )
+
+    fila += 1
+
+    # días
+
+    ws.cell(fila, 1, "Operador")
+
+    for dia in range(1, dias_mes + 1):
+
+        ws.cell(
+            fila,
+            dia + 1,
+            f"{dia:02d}"
+        )
+
+    fila += 1
+
+    # inicial día
+
+    ws.cell(fila, 1, "Dia")
+
+    for dia in range(1, dias_mes + 1):
+
+        fecha = date(
+            2027,
+            mes,
+            dia
+        )
+
+        ws.cell(
+            fila,
+            dia + 1,
+            DIAS_SEMANA[
+                fecha.weekday()
+            ]
+        )
+
+    fila += 1
+
+    inicio_operadores = fila
+
+    # operadores
+
+    for op in OPERADORES:
+
+        ws.cell(
+            fila,
+            1,
+            op
+        )
+
+        for dia in range(1, dias_mes + 1):
+
+            fecha = date(
+                2027,
+                mes,
+                dia
             )
 
-            model.Add(
-                offset[op] == k
-            ).OnlyEnforceIf(b)
+            turno = cuadrante[
+                (op, fecha)
+            ]
 
-            model.Add(
-                offset[op] != k
-            ).OnlyEnforceIf(b.Not())
+            c = ws.cell(
+                fila,
+                dia + 1,
+                turno
+            )
 
-            model.Add(
-                turno[(op, d)]
-                ==
-                PATRON[(d + k) % LONGITUD]
-            ).OnlyEnforceIf(b)
+            c.fill = PatternFill(
+                "solid",
+                fgColor=COLORES[turno]
+            )
 
-            opciones.append(b)
+        fila += 1
 
-        model.AddExactlyOne(opciones)
+    # cobertura
 
-for d in range(DIAS):
+    for turno in ["M", "T", "N"]:
 
-    m = []
-    t = []
-    n = []
-
-    for op in OPERADORES:
-
-        es_m = model.NewBoolVar(
-            f"m_{op}_{d}"
+        ws.cell(
+            fila,
+            1,
+            f"Cob {turno}"
         )
 
-        es_t = model.NewBoolVar(
-            f"t_{op}_{d}"
-        )
+        for dia in range(1, dias_mes + 1):
 
-        es_n = model.NewBoolVar(
-            f"n_{op}_{d}"
-        )
+            fecha = date(
+                2027,
+                mes,
+                dia
+            )
 
-        model.Add(
-            turno[(op, d)] == 1
-        ).OnlyEnforceIf(es_m)
+            conteo = 0
 
-        model.Add(
-            turno[(op, d)] != 1
-        ).OnlyEnforceIf(es_m.Not())
+            for op in OPERADORES:
 
-        model.Add(
-            turno[(op, d)] == 2
-        ).OnlyEnforceIf(es_t)
+                if cuadrante[
+                    (op, fecha)
+                ] == turno:
 
-        model.Add(
-            turno[(op, d)] != 2
-        ).OnlyEnforceIf(es_t.Not())
+                    conteo += 1
 
-        model.Add(
-            turno[(op, d)] == 3
-        ).OnlyEnforceIf(es_n)
+            ws.cell(
+                fila,
+                dia + 1,
+                conteo
+            )
 
-        model.Add(
-            turno[(op, d)] != 3
-        ).OnlyEnforceIf(es_n.Not())
+        fila += 1
 
-        m.append(es_m)
-        t.append(es_t)
-        n.append(es_n)
+    fila += 2
 
-    model.Add(sum(m) >= 2)
-    model.Add(sum(t) >= 2)
-    model.Add(sum(n) >= 2)
+# ==================================================
+# GUARDAR
+# ==================================================
 
-solver = cp_model.CpSolver()
+archivo = "Cuadrante_2027_Estado_Diario.xlsx"
 
-solver.parameters.max_time_in_seconds = 60
-
-status = solver.Solve(model)
+wb.save(archivo)
 
 print()
-print("STATUS =", solver.StatusName(status))
-print()
-
-print("OFFSETS")
-print("-------")
-
-for op in OPERADORES:
-    print(
-        op,
-        solver.Value(offset[op])
-    )
-
-print()
-print("COBERTURA")
-print("---------")
-
-for d in range(DIAS):
-
-    m = 0
-    t = 0
-    n = 0
-
-    for op in OPERADORES:
-
-        valor = solver.Value(
-            turno[(op, d)]
-        )
-
-        if valor == 1:
-            m += 1
-        elif valor == 2:
-            t += 1
-        elif valor == 3:
-            n += 1
-
-    print(
-        f"Dia {d+1:03d}",
-        f"M={m}",
-        f"T={t}",
-        f"N={n}"
-    )
-
-print()
-print("FIN")
+print("Excel generado:")
+print(archivo)
