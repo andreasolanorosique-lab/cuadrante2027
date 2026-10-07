@@ -18,7 +18,8 @@ PATRON = [
 ]
 
 DIAS = 365
-LONGITUD = len(PATRON)
+LONGITUD_INVIERNO = 12
+LONGITUD_VERANO = 9
 
 # ==================================================
 # MODELO
@@ -48,7 +49,7 @@ for op in OPERADORES:
 
         opciones = []
 
-        for k in range(LONGITUD):
+        for k in range(LONGITUD_INVIERNO):
 
             b = model.NewBoolVar(
                 f"{op}_{d}_{k}"
@@ -70,7 +71,7 @@ for op in OPERADORES:
             model.Add(
                 turno[op, d]
                 ==
-                PATRON[(d + k) % LONGITUD]
+                PATRON[(d + k) % LONGITUD_INVIERNO]
             ).OnlyEnforceIf(b)
 
             opciones.append(b)
