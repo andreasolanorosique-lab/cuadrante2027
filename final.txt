@@ -1,0 +1,30 @@
+print("COBERTURA")
+print("---------")
+
+for d in range(DIAS):
+
+    m = 0
+    t = 0
+    n = 0
+
+    for op in OPERADORES:
+
+        valor = solver.Value(
+            turno[op, d]
+        )
+
+        if valor == 1:
+            m += 1
+
+        elif valor == 2:
+            t += 1
+
+        elif valor == 3:
+            n += 1
+
+    print(
+        f"Dia {d+1:03d}",
+        f"M={m}",
+        f"T={t}",
+        f"N={n}"
+    )

@@ -1,0 +1,30 @@
+from ortools.sat.python import cp_model
+
+OPERADORES = list("ABCDEFGHIJKL")
+
+PATRON = [
+    1, 1,   # MM
+    2, 2,   # TT
+    3, 3,   # NN
+    0, 0, 0, 0, 0, 0  # 444444
+]
+
+DIAS = 365
+LONGITUD = len(PATRON)
+
+model = cp_model.CpModel()
+
+offset = {}
+
+for op in OPERADORES:
+    offset[op] = model.NewIntVar(
+        0,
+        LONGITUD - 1,
+        f"offset_{op}"
+    )
+
+turno = {}
+
+for op in OPERADORES:
+
+    for d in range(DIAS):
