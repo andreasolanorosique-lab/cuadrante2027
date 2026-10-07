@@ -9,54 +9,7 @@ from calendar import monthrange
 # ==================================================
 
 OPERADORES = list("ABCDEFGHIJKL")
-VACACIONES = {
-    "A": [(date(2027, 6, 1),  date(2027, 6, 15)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
 
-    "B": [(date(2027, 6, 1),  date(2027, 6, 15)),
-          (date(2027, 8, 16), date(2027, 8, 31))],
-
-    "C": [(date(2027, 6, 1),  date(2027, 6, 15)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
-
-    "D": [(date(2027, 6, 16), date(2027, 6, 30)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
-
-    "E": [(date(2027, 6, 16), date(2027, 6, 30)),
-          (date(2027, 8, 16), date(2027, 8, 31))],
-
-    "F": [(date(2027, 6, 16), date(2027, 6, 30)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
-
-    "G": [(date(2027, 7, 1),  date(2027, 7, 15)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
-
-    "H": [(date(2027, 7, 1),  date(2027, 7, 15)),
-          (date(2027, 8, 16), date(2027, 8, 31))],
-
-    "I": [(date(2027, 7, 1),  date(2027, 7, 15)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
-
-    "J": [(date(2027, 7, 16), date(2027, 7, 31)),
-          (date(2027, 9, 16), date(2027, 9, 30))],
-
-    "K": [(date(2027, 7, 16), date(2027, 7, 31)),
-          (date(2027, 9, 16), date(2027, 9, 30))],
-
-    "L": [(date(2027, 7, 16), date(2027, 7, 31)),
-          (date(2027, 8, 1),  date(2027, 8, 15))]
-}
-def esta_de_vacaciones(operador, fecha):
-
-    if operador not in VACACIONES:
-        return False
-
-    for inicio, fin in VACACIONES[operador]:
-
-        if inicio <= fecha <= fin:
-            return True
-
-    return False
 PATRON = [
     1, 1,   # MM
     2, 2,   # TT
@@ -73,20 +26,19 @@ LONGITUD = len(PATRON)
 
 model = cp_model.CpModel()
 
-offset = {}
-
-for op in OPERADORES:
-    offset[op] = model.NewIntVar(
-        0,
-        LONGITUD - 1,
-        f"offset_{op}"
-    )
-
 turno = {}
+posicion = {}
+
 
 for op in OPERADORES:
 
     for d in range(DIAS):
+
+        posicion[op, d] = model.NewIntVar(
+            0,
+            11,
+            f"pos_{op}_{d}"
+        )
 
         turno[op, d] = model.NewIntVar(
             0,
@@ -102,14 +54,19 @@ for op in OPERADORES:
                 f"{op}_{d}_{k}"
             )
 
+            #model.Add(
+                
+            #).OnlyEnforceIf(b)
+
             model.Add(
-                offset[op] == k
+                posicion[op, d] == k
             ).OnlyEnforceIf(b)
 
             model.Add(
-                offset[op] != k
+                posicion[op, d] != k
             ).OnlyEnforceIf(b.Not())
-
+            
+            
             model.Add(
                 turno[op, d]
                 ==
@@ -163,6 +120,7 @@ solver.parameters.max_time_in_seconds = 60
 status = solver.Solve(model)
 
 print("STATUS =", solver.StatusName(status))
+
 
 if status not in (
     cp_model.OPTIMAL,

@@ -10,32 +10,32 @@ from calendar import monthrange
 
 OPERADORES = list("ABCDEFGHIJKL")
 VACACIONES = {
-    "A": [(date(2027, 6, 1),  date(2027, 6, 15)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
+    "A": [(date(2027, 6, 1), date(2027, 6, 15)),
+          (date(2027, 8, 1), date(2027, 8, 15))],
 
-    "B": [(date(2027, 6, 1),  date(2027, 6, 15)),
+    "B": [(date(2027, 6, 1), date(2027, 6, 15)),
           (date(2027, 8, 16), date(2027, 8, 31))],
 
-    "C": [(date(2027, 6, 1),  date(2027, 6, 15)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
+    "C": [(date(2027, 6, 1), date(2027, 6, 15)),
+          (date(2027, 9, 1), date(2027, 9, 15))],
 
     "D": [(date(2027, 6, 16), date(2027, 6, 30)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
+          (date(2027, 8, 1), date(2027, 8, 15))],
 
     "E": [(date(2027, 6, 16), date(2027, 6, 30)),
           (date(2027, 8, 16), date(2027, 8, 31))],
 
     "F": [(date(2027, 6, 16), date(2027, 6, 30)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
+          (date(2027, 9, 1), date(2027, 9, 15))],
 
-    "G": [(date(2027, 7, 1),  date(2027, 7, 15)),
-          (date(2027, 8, 1),  date(2027, 8, 15))],
+    "G": [(date(2027, 7, 1), date(2027, 7, 15)),
+          (date(2027, 8, 1), date(2027, 8, 15))],
 
-    "H": [(date(2027, 7, 1),  date(2027, 7, 15)),
+    "H": [(date(2027, 7, 1), date(2027, 7, 15)),
           (date(2027, 8, 16), date(2027, 8, 31))],
 
-    "I": [(date(2027, 7, 1),  date(2027, 7, 15)),
-          (date(2027, 9, 1),  date(2027, 9, 15))],
+    "I": [(date(2027, 7, 1), date(2027, 7, 15)),
+          (date(2027, 9, 1), date(2027, 9, 15))],
 
     "J": [(date(2027, 7, 16), date(2027, 7, 31)),
           (date(2027, 9, 16), date(2027, 9, 30))],
@@ -44,14 +44,14 @@ VACACIONES = {
           (date(2027, 9, 16), date(2027, 9, 30))],
 
     "L": [(date(2027, 7, 16), date(2027, 7, 31)),
-          (date(2027, 8, 1),  date(2027, 8, 15))]
+          (date(2027, 8, 1), date(2027, 8, 15))]
 }
-def esta_de_vacaciones(operador, fecha):
+def esta_de_vacaciones(op, fecha):
 
-    if operador not in VACACIONES:
+    if op not in VACACIONES:
         return False
 
-    for inicio, fin in VACACIONES[operador]:
+    for inicio, fin in VACACIONES[op]:
 
         if inicio <= fecha <= fin:
             return True
@@ -200,7 +200,8 @@ colores = {
     "M": "92D050",
     "T": "FFC000",
     "N": "7030A0",
-    "4": "D9D9D9"
+    "4": "D9D9D9",
+    "V": "5B9BD5"
 }
 
 fila = 1
@@ -283,13 +284,30 @@ for mes in range(1, 13):
                 ]
             )
 
-            if valor == 1:
+            fecha_actual = date(
+                2027,
+                mes,
+                d + 1
+            )
+
+            if esta_de_vacaciones(op, fecha_actual):
+
+                texto = "V"
+
+            elif valor == 1:
+
                 texto = "M"
+
             elif valor == 2:
+
                 texto = "T"
+
             elif valor == 3:
+
                 texto = "N"
+
             else:
+
                 texto = "4"
 
             c = ws.cell(

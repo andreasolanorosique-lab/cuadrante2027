@@ -3,10 +3,77 @@ from datetime import date, timedelta
 OPERADORES = list("ABCDEFGHIJKL")
 
 VACACIONES = {
-    "J",
-    "K",
-    "L"
+    "A": [
+        (date(2027, 6, 1), date(2027, 6, 15)),
+        (date(2027, 8, 1), date(2027, 8, 15))
+    ],
+
+    "B": [
+        (date(2027, 6, 1), date(2027, 6, 15)),
+        (date(2027, 8, 16), date(2027, 8, 31))
+    ],
+
+    "C": [
+        (date(2027, 6, 1), date(2027, 6, 15)),
+        (date(2027, 9, 1), date(2027, 9, 15))
+    ],
+
+    "D": [
+        (date(2027, 6, 16), date(2027, 6, 30)),
+        (date(2027, 8, 1), date(2027, 8, 15))
+    ],
+
+    "E": [
+        (date(2027, 6, 16), date(2027, 6, 30)),
+        (date(2027, 8, 16), date(2027, 8, 31))
+    ],
+
+    "F": [
+        (date(2027, 6, 16), date(2027, 6, 30)),
+        (date(2027, 9, 1), date(2027, 9, 15))
+    ],
+
+    "G": [
+        (date(2027, 7, 1), date(2027, 7, 15)),
+        (date(2027, 8, 1), date(2027, 8, 15))
+    ],
+
+    "H": [
+        (date(2027, 7, 1), date(2027, 7, 15)),
+        (date(2027, 8, 16), date(2027, 8, 31))
+    ],
+
+    "I": [
+        (date(2027, 7, 1), date(2027, 7, 15)),
+        (date(2027, 9, 1), date(2027, 9, 15))
+    ],
+
+    "J": [
+        (date(2027, 7, 16), date(2027, 7, 31)),
+        (date(2027, 9, 16), date(2027, 9, 30))
+    ],
+
+    "K": [
+        (date(2027, 7, 16), date(2027, 7, 31)),
+        (date(2027, 9, 16), date(2027, 9, 30))
+    ],
+
+    "L": [
+        (date(2027, 7, 16), date(2027, 7, 31)),
+        (date(2027, 8, 1), date(2027, 8, 15))
+    ]
 }
+def esta_de_vacaciones(op, fecha):
+
+    if op not in VACACIONES:
+        return False
+
+    for inicio, fin in VACACIONES[op]:
+
+        if inicio <= fecha <= fin:
+            return True
+
+    return False
 
 PATRON_VERANO = [
     "M", "M",
@@ -44,14 +111,24 @@ for op in OPERADORES:
 
     while fecha <= FIN:
 
+        if esta_de_vacaciones(op, fecha):
+
+            turno = "V"
+
+    else:
+
         turno = PATRON_VERANO[
-            (dia + offset) % len(PATRON_VERANO)
-        ]
+    (dia + offset) % len(PATRON_VERANO)
+]
+turno = PATRON_VERANO[
+    (dia + offset) % len(PATRON_VERANO)
+]
 
-        cuadrante[(op, fecha)] = turno
+if esta_de_vacaciones(op, fecha):
+    turno = "V"
 
-        fecha += timedelta(days=1)
-        dia += 1
+fecha += timedelta(days=1)
+dia += 1
 
 print("COBERTURA JUNIO")
 print("----------------")
@@ -66,7 +143,7 @@ while fecha <= FIN:
 
     for op in OPERADORES:
 
-        if op in VACACIONES:
+        if turno == "V":
             continue
 
         turno = cuadrante[(op, fecha)]
