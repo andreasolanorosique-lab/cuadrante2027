@@ -64,48 +64,47 @@ for op in OPERADORES:
 
         opciones = []
         
-        for k in range(LONGITUD_INVIERNO):
+        #for k in range(LONGITUD_INVIERNO):
 
-            b = model.NewBoolVar(
-                f"{op}_{d}_{k}"
-            )
+            #b = model.NewBoolVar(
+                #f"{op}_{d}_{k}"
+        #)
 
             #model.Add(
                 
             #).OnlyEnforceIf(b)
 
-            model.Add(
-                posicion[op, d] == k
-            ).OnlyEnforceIf(b)
+            #model.Add(
+                #posicion[op, d] == k
+            #).OnlyEnforceIf(b)
 
-            model.Add(
-                posicion[op, d] != k
-            ).OnlyEnforceIf(b.Not())
+            #model.Add(
+                #posicion[op, d] != k
+            #).OnlyEnforceIf(b.Not())
             
             
-            model.Add(
-                turno[op, d]
-                ==
-                posicion[op, d]
-            ).OnlyEnforceIf(b)
+            #model.Add(
+                #turno[op, d]
+                #==
+                #posicion[op, d]
+            #).OnlyEnforceIf(b)
 
-            opciones.append(b)
+            #opciones.append(b)
 
-        model.AddExactlyOne(opciones)
-        
+        #model.AddExactlyOne(opciones)
+        model.Add(
+            turno[op, d]
+            ==
+            posicion[op, d]
+        )
         if d > 0:
 
             model.Add(
+            siguiente[op, d - 1]
+            ==
             posicion[op, d]
-            <=
-            posicion[op, d - 1] + 1
         )
-
-            model.Add(
-            posicion[op, d]
-            >=
-            posicion[op, d - 1]
-        )
+            
 # ==================================================
 # COBERTURA
 # ==================================================
