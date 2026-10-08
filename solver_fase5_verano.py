@@ -10,11 +10,17 @@ from calendar import monthrange
 
 OPERADORES = list("ABCDEFGHIJKL")
 
-PATRON = [
+PATRON_INVIERNO = [
     1, 1,   # MM
     2, 2,   # TT
     3, 3,   # NN
     0, 0, 0, 0, 0, 0   # 444444
+]
+PATRON_VERANO = [
+1, 1, # MM
+2, 2, # TT
+3, 3, # NN
+0, 0, 0 # 444
 ]
 
 DIAS = 365
@@ -43,12 +49,12 @@ for op in OPERADORES:
 
         turno[op, d] = model.NewIntVar(
             0,
-            3,
+            11,
             f"{op}_{d}"
         )
 
         opciones = []
-
+        
         for k in range(LONGITUD_INVIERNO):
 
             b = model.NewBoolVar(
@@ -71,19 +77,26 @@ for op in OPERADORES:
             model.Add(
                 turno[op, d]
                 ==
-                PATRON[k]
+                posicion[op, d]
             ).OnlyEnforceIf(b)
 
             opciones.append(b)
 
         model.AddExactlyOne(opciones)
+        
         if d > 0:
 
             model.Add(
-                posicion[op, d]
-                >=
-                posicion[op, d - 1]
-            )
+            posicion[op, d]
+            <=
+            posicion[op, d - 1] + 1
+        )
+
+            model.Add(
+            posicion[op, d]
+            >=
+            posicion[op, d - 1]
+        )
 # ==================================================
 # COBERTURA
 # ==================================================
