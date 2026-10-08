@@ -35,7 +35,7 @@ model = cp_model.CpModel()
 
 turno = {}
 posicion = {}
-
+siguiente = {}
 
 for op in OPERADORES:
 
@@ -46,7 +46,16 @@ for op in OPERADORES:
             11,
             f"pos_{op}_{d}"
         )
-
+        siguiente[op, d] = model.NewIntVar(
+            0,
+            11,
+            f"sig_{op}_{d}"
+        )
+        model.Add(
+            siguiente[op, d]
+            ==
+            posicion[op, d]
+        )
         turno[op, d] = model.NewIntVar(
             0,
             11,
@@ -142,12 +151,20 @@ status = solver.Solve(model)
 print("STATUS =", solver.StatusName(status))
 print()
 print("PRUEBA POSICIONES A")
+print()
+print("PRUEBA SIGUIENTE A")
 
 for d in range(10):
 
     print(
         d,
         solver.Value(posicion["A", d])
+    )
+for d in range(10):
+
+    print(
+        d,
+        solver.Value(siguiente["A", d])
     )
 
 if status not in (
